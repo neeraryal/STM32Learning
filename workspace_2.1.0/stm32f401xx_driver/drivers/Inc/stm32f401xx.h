@@ -324,7 +324,7 @@ typedef struct
 
 
 /*
-* Macro to reset GPIOx peripheral  
+* Macro to reset GPIOx peripheral   ## First we do reset but setting the bit , then we reset it so that we can init later, else it will always reset it 
 */
 #define GPIOA_REG_RESET()    do{ (RCC->AHB1RSTR |= (1<<0)); (RCC->AHB1RSTR &= ~(1<<0)); } while(0)
 #define GPIOB_REG_RESET()    do{ (RCC->AHB1RSTR |= (1<<1)); (RCC->AHB1RSTR &= ~(1<<1)); } while(0)
@@ -334,9 +334,18 @@ typedef struct
 #define GPIOH_REG_RESET()    do{ (RCC->AHB1RSTR |= (1<<7)); (RCC->AHB1RSTR &= ~(1<<7)); } while(0)
 
 /*
-* MACRO to get 
+* MACRO to reset SPIx peripheral  ## First we do reset but setting the bit , then we reset it so that we can init later, else it will always reset it 
 */
 
+#define SPI1_REG_RESET()     do{ (RCC->APB2RSTR |= (1<<12)); (RCC->APB2RSTR &= ~(1<<12));} while(0)
+#define SPI2_REG_RESET()     do{ (RCC->APB1RSTR |= (1<<14)); (RCC->APB2RSTR &= ~(1<<14));} while(0)
+#define SPI3_REG_RESET()     do{ (RCC->APB2RSTR |= (1<<15)); (RCC->APB2RSTR &= ~(1<<15));} while(0)
+#define SPI4_REG_RESET()     do{ (RCC->APB2RSTR |= (1<<13)); (RCC->APB2RSTR &= ~(1<<13));} while(0)
+
+
+/*
+* MACRO to get GPIOx base address to code (for EXTI configuration)
+*/
 #define GPIO_BASEADDR_TO_CODE(x)  ((x == GPIOA) ? 0 : \
                                   (x == GPIOB) ? 1 : \
                                   (x == GPIOC) ? 2 : \
