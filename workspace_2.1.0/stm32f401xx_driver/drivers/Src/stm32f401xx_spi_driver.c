@@ -9,6 +9,21 @@
 #include "stm32f401xx_spi_driver.h"
 
 /**
+ * @brief Get the status of a  SPI  SR flag
+ * 
+ * @param pSPIx Pointer to the SPI peripheral
+ * @param Flag The flag to check
+ * @return uint8_t SET if the flag is set, RESET otherwise
+ */
+uint8_t SPI_GetSRFlagStatus(SPI_RegDef_t* pSPIx, uint8_t Flag)
+{
+    if(pSPIx->SR & Flag)
+    {
+        return SET;
+    }
+    return RESET;
+}
+/**
  * @brief SPI Peripheral Clock Setup
  * 
  * @param pSPIx Pointer to SPI peripheral (SPI1, SPI2, SPI3, SPI4)
@@ -64,6 +79,7 @@ void SPI_PeriClockControl(SPI_RegDef_t* pSPIx, uint8_t EnorDi)
  */
 void SPI_Init(SPI_Handle_t* pSPIHandle)
 {
+    SPI_PeriClockControl(pSPIHandle->pSPIx,ENABLE);
     uint32_t temp_reg = 0;
 
     //1. Inilialize the SPI MODE
@@ -101,10 +117,7 @@ void SPI_Init(SPI_Handle_t* pSPIHandle)
 
     //7. Initilaize SSM
     temp_reg |= (pSPIHandle->SPIConfig.SPI_SSM<<SPI_CR1_SSM);
-    if(pSPIHandle->SPIConfig.SPI_SSM == 1)
-    {
-        temp_reg |= 1<<SPI_CR1_RXONLY;
-    }
+
     pSPIHandle->pSPIx->CR1 = temp_reg;
 }
 
@@ -119,14 +132,82 @@ void SPI_DeInit(SPI_RegDef_t* pSPIx)
 }
 
 /**
+ * @brief Enable or Disable the SPI Peripheral by setting or clearing the SPE bit in CR1 register
+ * 
+ * @param pSPIx Pointer to SPI peripheral (SPI1, SPI2, SPI3, SPI4) 
+ * @param ENorDI Enable or Disable the SPI Peripheral (ENABLE/DISABLE)
+ */
+void SPI_PeripheralControl(SPI_RegDef_t* pSPIx,uint8_t ENorDI)
+{
+    if(ENorDI ==ENABLE)
+    {
+        pSPIx->CR1 |= (1<<SPI_CR1_SPE);
+    }
+    else{
+        pSPIx->CR1 &= ~(1<<SPI_CR1_SPE);
+    }
+}
+/**
+ * @brief Enable or Disable the SPI Peripheral by setting or clearing the SPE bit in CR1 register
+ * 
+ * @param pSPIx Pointer to SPI peripheral (SPI1, SPI2, SPI3, SPI4) 
+ * @param ENorDI Enable or Disable the SPI Peripheral (ENABLE/DISABLE)
+ */
+void SPI_SSIConfig(SPI_RegDef_t* pSPIx,uint8_t ENorDI)
+{
+    if(ENorDI ==ENABLE)
+    {
+        pSPIx->CR1 |= (1<<SPI_CR1_SSI);
+    }
+    else{
+        pSPIx->CR1 &= ~(1<<SPI_CR1_SSI);
+    }
+}
+
+void SPI_SSOEConfig(SPI_RegDef_t* pSPIx,uint8_t ENorDI)
+{
+    if(ENorDI == ENABLE)
+    {
+        pSPIx->CR2 |= (1<<SPI_CR2_SSOE);
+    }
+    else{
+        pSPIx->CR2 &= ~(1<<SPI_CR2_SSOE);
+    }
+}
+/**
  * @brief SPI Data send and Receive API
  * 
  * @param pSPIx Pointer to SPI peripheral (SPI1, SPI2, SPI3, SPI4)
  * @param pTXBuffer Pointer to transmit buffer
  * @param Len Length of data to be transmitted
+ * 
+ * @note Current Implementation is a blocking call
  */
 void SPI_SendData (SPI_RegDef_t* pSPIx, uint8_t * pTXBuffer , uint32_t Len)
 {
+    //Implementing Blocking Call for SPI Write 
+    //1. Check if len of data the we need to send is grater than 0
+    while(Len >0)
+    {
+        //2. Check if Transmit Buffer is empty or not, as there can be data present , so we dont want to overwrite it.
+        while(!SPI_GetSRFlagStatus(pSPIx,SPI_TXE_FLAG_MASK));
+
+        //3. Chekc for the data size 8 or 16 bit 
+        if(pSPIx->SR & 1<<11)
+        {
+            //16 Bit data fortmat
+            pSPIx->DR = *((uint16_t*)pTXBuffer);
+            Len-=2;
+            pTXBuffer = (uint8_t*)((uint16_t*)pTXBuffer + 1);
+        }
+        else
+        {
+            //8 bit data format 
+            pSPIx->DR = *pTXBuffer;
+            Len-=1;
+            pTXBuffer++;
+        }
+    }
 
 }
 

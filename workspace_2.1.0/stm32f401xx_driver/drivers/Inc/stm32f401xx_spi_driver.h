@@ -80,8 +80,17 @@ typedef struct{
  */
 
 #define SPI_SSM_EN               1
-#define SPI_SSM_DO               0
+#define SPI_SSM_DI               0
 
+#define SPI_RXNE_FLAG_MASK        (1<<SPI_SR_RXNE)
+#define SPI_TXE_FLAG_MASK         (1<<SPI_SR_TXE)
+#define SPI_CHSIDE_FLAG_MASK      (1<<SPI_SR_CHSIDE)
+#define SPI_UDR_FLAG_MASK         (1<<SPI_SR_UDR)
+#define SPI_CRC_ERR_FLAG_MASK     (1<<SPI_SR_CRC_ERR)
+#define SPI_MODF_FLAG_MASK        (1<<SPI_SR_MODF)
+#define SPI_OVR_FLAG_MASK         (1<<SPI_SR_OVR)
+#define SPI_BSY_FLAG_MASK         (1<<SPI_SR_BSY)
+#define SPI_FRE_FLAG_MASK         (1<<SPI_SR_FRE)
 
 
 /**
@@ -111,5 +120,13 @@ void SPI_ReceiveData(SPI_RegDef_t* pSPIx, uint8_t * pRXBuffer , uint32_t Len);
 void SPI_IRQPriorityConfig(uint8_t IRQNumber, uint8_t IRQPriority);
 void SPI_IRQInterruptConfig(uint8_t IRQNumber, uint8_t IRQEnorDi);
 void SPI_IRQHandling(SPI_Handle_t * pHandle);
+
+/*
+* Other API for SPI 
+*/
+uint8_t SPI_GetSRFlagStatus(SPI_RegDef_t* pSPIx, uint8_t Flag);
+void SPI_PeripheralControl(SPI_RegDef_t* pSPIx,uint8_t ENorDI);
+void SPI_SSIConfig(SPI_RegDef_t* pSPIx,uint8_t ENorDI);
+void SPI_SSOEConfig(SPI_RegDef_t* pSPIx,uint8_t ENorDI);
 
 #endif /* INC_STM32F401XX_SPI_DRIVER_H_ */
