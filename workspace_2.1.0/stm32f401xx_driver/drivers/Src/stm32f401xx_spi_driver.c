@@ -221,6 +221,30 @@ void SPI_SendData (SPI_RegDef_t* pSPIx, uint8_t * pTXBuffer , uint32_t Len)
 void SPI_ReceiveData(SPI_RegDef_t* pSPIx, uint8_t * pRXBuffer , uint32_t Len)
 {
 
+    //Implementing Blocking Call for SPI REad 
+    //1. Check if len of data the we need to receive is grater than 0
+    while(Len >0)
+    {
+        //2. Check if Transmit Buffer is empty or not, as there can be data present , so we dont want to overwrite it.
+        while(!SPI_GetSRFlagStatus(pSPIx,SPI_RXNE_FLAG_MASK));
+
+        //3. Chekc for the data size 8 or 16 bit 
+        if(pSPIx->SR & 1<<11)
+        {
+            //16 Bit data fortmat
+            *(uint16_t*)pRXBuffer=pSPIx->DR ;
+            Len-=2;
+            pRXBuffer = (uint8_t*)((uint16_t*)pRXBuffer + 1);
+        }
+        else
+        {
+            //8 bit data format 
+            *pRXBuffer = pSPIx->DR;
+            Len-=1;
+            pRXBuffer++;
+        }
+    }
+
 }
 
 /**
